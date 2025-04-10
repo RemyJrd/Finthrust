@@ -33,17 +33,30 @@ def run_backtest(data, short_period=20, long_period=50):
          st.error("Data index is not a DatetimeIndex. yfinance data should have this by default.")
          return None, None, None, None, None # Indicate failure
 
-    # Check for required columns (case-insensitive)
-    required_columns = ['open', 'high', 'low', 'close', 'volume']
-    original_columns = data.columns.tolist() # Keep original case for user display
-    data.columns = [col.lower() for col in data.columns] # Standardize column names to lower case for backtrader
-    if not all(col in data.columns for col in required_columns):
-        st.error(f"Downloaded data must contain columns (case-insensitive): {', '.join(required_columns)}. Found: {', '.join(original_columns)}")
+    # --- Start: Improved Column Handling ---
+    required_columns_lower = ['open', 'high', 'low', 'close', 'volume']
+    # Create a mapping from lowercase required columns to the actual column name found in the dataframe
+    column_mapping = {}
+    actual_columns_lower = {col.lower(): col for col in data.columns}
+
+    missing_cols = []
+    for req_col_lower in required_columns_lower:
+        if req_col_lower not in actual_columns_lower:
+            missing_cols.append(req_col_lower)
+        else:
+            # Map the lowercase required name to the actual name found (e.g., 'open' -> 'Open')
+            column_mapping[req_col_lower] = actual_columns_lower[req_col_lower]
+
+    if missing_cols:
+        st.error(f"Downloaded data is missing required columns: {', '.join(missing_cols)}. Found columns: {', '.join(data.columns)}")
         return None, None, None, None, None # Indicate failure
 
-    # Rename columns for Backtrader - already done by lowercasing above
-    # data.rename(columns={'Open':'open', 'High':'high', 'Low':'low', 'Close':'close', 'Volume':'volume'}, inplace=True)
+    # Rename the found columns to lowercase for Backtrader
+    rename_dict = {actual_name: lower_name for lower_name, actual_name in column_mapping.items()}
+    data.rename(columns=rename_dict, inplace=True)
+    # --- End: Improved Column Handling ---
 
+    # Now data should have 'open', 'high', 'low', 'close', 'volume' columns
     data_feed = bt.feeds.PandasData(dataname=data)
 
     cerebro.adddata(data_feed)
@@ -131,6 +144,7 @@ if run_button:
             else:
                 with data_preview_container:
                     st.subheader(f"Data Preview for {stock_ticker}")
+                    # Display data with original column names before renaming
                     st.dataframe(data.head())
 
                 # Run the backtest
@@ -155,11 +169,13 @@ if run_button:
                         fig = plot_portfolio_value(strategy)
                         if fig:
                             st.pyplot(fig)
-                else:
-                    results_container.error("Backtest failed. Check errors above or in data format.")
+                # No explicit 'else' needed here, run_backtest displays errors internally
+                # else:
+                #     results_container.error("Backtest failed. Check errors above or in data format.")
 
         except Exception as e:
             st.error(f"An error occurred: {e}")
+            st.exception(e) # Also display the full traceback for debugging
 
 # (Optional) Add instructions or default message when app starts
 if not run_button:
