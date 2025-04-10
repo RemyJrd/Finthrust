@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import backtrader as bt
 import matplotlib.pyplot as plt
+import yfinance as yf
+import datetime
 
 class MACrossover(bt.Strategy):
     params = (
@@ -29,38 +30,19 @@ def run_backtest(data, short_period=20, long_period=50):
 
     # Ensure data has the correct format for PandasData
     if not isinstance(data.index, pd.DatetimeIndex):
-        try:
-            # Attempt to convert the index to datetime, assuming it's the first column if not the index
-            if data.index.name is None or not pd.api.types.is_datetime64_any_dtype(data.index):
-                 # Find the first column that might be a date
-                potential_date_cols = [col for col in data.columns if 'date' in col.lower() or 'time' in col.lower()]
-                if potential_date_cols:
-                    date_col = potential_date_cols[0]
-                    st.write(f"Attempting to parse dates from column: {date_col}")
-                    data[date_col] = pd.to_datetime(data[date_col])
-                    data.set_index(date_col, inplace=True)
-                else:
-                     # Fallback: try parsing the first column
-                     st.write("No obvious date column found, attempting to parse the first column.")
-                     first_col = data.columns[0]
-                     data[first_col] = pd.to_datetime(data[first_col])
-                     data.set_index(first_col, inplace=True)
-
-            else: # The index exists but isn't datetime
-                data.index = pd.to_datetime(data.index)
-
-        except Exception as e:
-             st.error(f"Failed to automatically convert index/column to DatetimeIndex. Please ensure your CSV has a parsable date column and it's set as the index. Error: {e}")
-             return None, None, None, None, None # Indicate failure
-
+         st.error("Data index is not a DatetimeIndex. yfinance data should have this by default.")
+         return None, None, None, None, None # Indicate failure
 
     # Check for required columns (case-insensitive)
     required_columns = ['open', 'high', 'low', 'close', 'volume']
-    data.columns = [col.lower() for col in data.columns] # Standardize column names to lower case first
+    original_columns = data.columns.tolist() # Keep original case for user display
+    data.columns = [col.lower() for col in data.columns] # Standardize column names to lower case for backtrader
     if not all(col in data.columns for col in required_columns):
-        st.error(f"Input data must contain columns (case-insensitive): {', '.join(required_columns)}. Found: {', '.join(data.columns)}")
+        st.error(f"Downloaded data must contain columns (case-insensitive): {', '.join(required_columns)}. Found: {', '.join(original_columns)}")
         return None, None, None, None, None # Indicate failure
 
+    # Rename columns for Backtrader - already done by lowercasing above
+    # data.rename(columns={'Open':'open', 'High':'high', 'Low':'low', 'Close':'close', 'Volume':'volume'}, inplace=True)
 
     data_feed = bt.feeds.PandasData(dataname=data)
 
@@ -113,7 +95,6 @@ def plot_portfolio_value(strategy):
         plt.close(fig) # Close the figure if error occurs
         return None
 
-
 # --- Streamlit App ---
 st.title("Backtrader Moving Average Crossover Strategy")
 
@@ -122,62 +103,64 @@ short_period_input = st.sidebar.number_input("Short MA Period", 1, 200, 20)
 long_period_input = st.sidebar.number_input("Long MA Period", 1, 200, 50)
 
 st.sidebar.header("Data Input")
-uploaded_file = st.sidebar.file_uploader("Upload CSV Data", type="csv")
+stock_ticker = st.sidebar.text_input("Stock Ticker (e.g., AAPL)", "AAPL")
+# Add date inputs
+start_date = st.sidebar.date_input("Start Date", datetime.date(2022, 1, 1))
+end_date = st.sidebar.date_input("End Date", datetime.date.today())
 
 run_button = st.sidebar.button("Run Backtest")
 
 # Placeholders for results and plot
 results_container = st.container()
 plot_container = st.container()
+data_preview_container = st.container()
 
+if run_button:
+    if not stock_ticker:
+        st.sidebar.warning("Please enter a stock ticker.")
+    elif start_date >= end_date:
+        st.sidebar.error("Error: Start date must be before end date.")
+    else:
+        try:
+            with st.spinner(f'Fetching data for {stock_ticker}...'):
+                # Fetch data using yfinance
+                data = yf.download(stock_ticker, start=start_date, end=end_date)
 
-if run_button and uploaded_file is not None:
-    try:
-        data = pd.read_csv(uploaded_file)
-        st.write("Uploaded Data Preview:")
-        st.dataframe(data.head())
+            if data.empty:
+                st.error(f"Could not download data for ticker '{stock_ticker}'. Check the ticker symbol and date range.")
+            else:
+                with data_preview_container:
+                    st.subheader(f"Data Preview for {stock_ticker}")
+                    st.dataframe(data.head())
 
-        # Run the backtest
-        strategy, final_value, sharpe, max_dd, total_ret = run_backtest(
-            data.copy(), # Pass a copy to avoid modifying original df
-            short_period=short_period_input,
-            long_period=long_period_input
-        )
+                # Run the backtest
+                with st.spinner('Running backtest...'):
+                    strategy, final_value, sharpe, max_dd, total_ret = run_backtest(
+                        data.copy(), # Pass a copy to avoid modifying original df
+                        short_period=short_period_input,
+                        long_period=long_period_input
+                    )
 
-        if strategy is not None: # Check if backtest ran successfully
-            with results_container:
-                st.subheader("Backtest Results")
-                col1, col2, col3, col4 = st.columns(4)
-                col1.metric("Final Portfolio Value", f"${final_value:,.2f}")
-                col2.metric("Total Return", f"{total_ret*100:.2f}%" if total_ret is not None else "N/A")
-                col3.metric("Sharpe Ratio", f"{sharpe:.2f}" if sharpe is not None else "N/A")
-                col4.metric("Max Drawdown", f"{max_dd:.2f}%" if max_dd is not None else "N/A")
+                if strategy is not None: # Check if backtest ran successfully
+                    with results_container:
+                        st.subheader("Backtest Results")
+                        col1, col2, col3, col4 = st.columns(4)
+                        col1.metric("Final Portfolio Value", f"${final_value:,.2f}")
+                        col2.metric("Total Return", f"{total_ret*100:.2f}%" if total_ret is not None else "N/A")
+                        col3.metric("Sharpe Ratio", f"{sharpe:.2f}" if sharpe is not None else "N/A")
+                        col4.metric("Max Drawdown", f"{max_dd:.2f}%" if max_dd is not None else "N/A")
 
+                    with plot_container:
+                        st.subheader("Portfolio Value Over Time")
+                        fig = plot_portfolio_value(strategy)
+                        if fig:
+                            st.pyplot(fig)
+                else:
+                    results_container.error("Backtest failed. Check errors above or in data format.")
 
-            with plot_container:
-                st.subheader("Portfolio Value Over Time")
-                fig = plot_portfolio_value(strategy)
-                if fig:
-                    st.pyplot(fig)
-        else:
-             results_container.error("Backtest failed. Check errors above or in data format.")
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
 
-
-    except pd.errors.EmptyDataError:
-        st.error("The uploaded CSV file is empty.")
-    except Exception as e:
-        st.error(f"An error occurred during data processing or backtesting: {e}")
-
-elif run_button and uploaded_file is None:
-    st.sidebar.warning("Please upload a CSV file.")
-
-
-# (Optional) Add instructions or default message when no data is loaded
-if uploaded_file is None:
-     results_container.info("Upload a CSV file and click 'Run Backtest' to see the results.")
-
-# Remove or comment out the old __main__ block if it exists
-# if __name__ == '__main__':
-#     # ... old example code ...
-#     pass
-
+# (Optional) Add instructions or default message when app starts
+if not run_button:
+     results_container.info("Enter a stock ticker, select dates, set parameters, and click 'Run Backtest' to see the results.")

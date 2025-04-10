@@ -1,6 +1,5 @@
-backtrader
-yfinance
-matplotlib
-pandas
-seaborn
 streamlit
+pandas
+backtrader
+matplotlib
+yfinance
