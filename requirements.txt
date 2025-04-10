@@ -1,0 +1,5 @@
+backtrader
+yfinance
+matplotlib
+pandas
+seaborn
