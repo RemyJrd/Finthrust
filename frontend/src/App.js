@@ -18,19 +18,16 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loginMessage, setLoginMessage] = useState('');
 
-  // State for adding positions
   const [ticker, setTicker] = useState('');
   const [quantity, setQuantity] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [positionMessage, setPositionMessage] = useState('');
 
-  // State for portfolio data
   const [portfolio, setPortfolio] = useState({ positions_pnl: [], total_pnl: 0, total_value: 0, total_pnl_percent: 0 });
   const [isLoadingPortfolio, setIsLoadingPortfolio] = useState(false);
   const [portfolioError, setPortfolioError] = useState('');
 
-  // --- API Calls ---
-  const API_BASE_URL = 'http://localhost:8000'; // Backend URL
+  const API_BASE_URL = 'http://localhost:8000';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -87,13 +84,12 @@ function App() {
       const positionData = {
         ticker: ticker.toUpperCase(), // Standardize ticker
         quantity: parseFloat(quantity),
-        purchase_price: parseFloat(purchasePrice),
+        purchase_price: parseFloat(purchasePrice)
       };
       const response = await fetch(`${API_BASE_URL}/${username}/positions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(positionData),
-      });
+        body: JSON.stringify(positionData) });
       const data = await response.json();
       if (response.ok) {
         setPositionMessage(data.message);
@@ -112,15 +108,12 @@ function App() {
     }
   };
 
-  // Fetch portfolio data periodically or on demand (e.g., refresh button)
-  // For now, fetch on login and after adding a position.
-
-  // --- Chart Data Preparation ---
   const allocationChartData = {
     labels: portfolio.positions_pnl
-              .filter(p => typeof p.current_value === 'number') // Only include valid numbers
+              .filter(p => typeof p.current_value === 'number')
               .map(p => p.ticker),
     datasets: [
+
       {
         label: 'Portfolio Allocation by Value',
         data: portfolio.positions_pnl
@@ -128,28 +121,38 @@ function App() {
                 .map(p => p.current_value),
         backgroundColor: [
           'rgba(255, 99, 132, 0.6)', // Add more colors if needed
-          'rgba(54, 162, 235, 0.6)',
-          'rgba(255, 206, 86, 0.6)',
-          'rgba(75, 192, 192, 0.6)',
-          'rgba(153, 102, 255, 0.6)',
-          'rgba(255, 159, 64, 0.6)',
+          '#A7C7E7', // Bleu pastel
+          '#FFB6C1', // Rose pastel
+          '#B0E2E2', // Vert d'eau pastel
+          '#CDB4DB', // Lavande pastel
+          '#F2D2BD', // Beige pastel
+          '#B5EAD7', // Vert clair pastel
         ],
         borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(75, 192, 192, 1)',
-          'rgba(153, 102, 255, 1)',
-          'rgba(255, 159, 64, 1)',
-        ],
+          '#121212',
+          '#121212',
+          '#121212',
+          '#121212',
+          '#121212',
+          '#121212',
+        ], // Couleur de fond sombre pour les bordures
+
         borderWidth: 1,
       },
     ],
   };
 
+  const allocationChartOptions = {
+    plugins: {
+      legend: {
+        display: false, // Hide legend
+      },
+    },
+  };
+
   const pnlChartData = {
     labels: portfolio.positions_pnl
-              .filter(p => typeof p.pnl === 'number') // Only include valid PnL numbers
+              .filter(p => typeof p.pnl === 'number')
               .map(p => p.ticker),
     datasets: [
       {
@@ -157,13 +160,13 @@ function App() {
         data: portfolio.positions_pnl
                 .filter(p => typeof p.pnl === 'number')
                 .map(p => p.pnl),
-        backgroundColor: portfolio.positions_pnl
-                         .filter(p => typeof p.pnl === 'number')
-                         .map(p => p.pnl >= 0 ? 'rgba(75, 192, 192, 0.6)' : 'rgba(255, 99, 132, 0.6)'), // Green for profit, Red for loss
-        borderColor: portfolio.positions_pnl
-                       .filter(p => typeof p.pnl === 'number')
-                       .map(p => p.pnl >= 0 ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)'),
-        borderWidth: 1,
+        backgroundColor: portfolio.positions_pnl.filter(p => typeof p.pnl === 'number').map(p => (p.pnl >= 0 ? '#B5EAD7' : '#FFB6C1')),
+        borderColor:'#121212',
+        borderWidth: 1
+      },
+    ],
+    options: {
+      
       },
     ],
   };
@@ -171,49 +174,47 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Portfolio Tracker</h1>
+        <h1 style={{ color: '#A7C7E7' }}>Portfolio Tracker</h1>
         {!loggedIn ? (
           <form onSubmit={handleLogin}>
             <label>
-              Username:
+              Username:<br />
               <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
             </label>
             <button type="submit">Login</button>
-            {loginMessage && <p style={{ color: 'red', fontSize: 'small' }}>{loginMessage}</p>}
+            {loginMessage && <p className={`message ${loginMessage.includes('failed') ? 'error' : 'info'}`}>{loginMessage}</p>}
           </form>
         ) : (
           <div>
-            <h2>Welcome, {username}!</h2>
+            <h2 style={{ color: '#A7C7E7' }}>Welcome, {username}!</h2>
 
-            {/* Add Position Form */}
             <div className="form-container">
               <h3>Add New Position</h3>
               <form onSubmit={handleAddPosition}>
                 <div>
-                  <label>Ticker: <input type="text" value={ticker} onChange={(e) => setTicker(e.target.value)} required /></label>
+                  <label>Ticker: <input type="text" value={ticker} onChange={(e) => setTicker(e.target.value)} required className="form-input"/></label>
                 </div>
                 <div>
-                  <label>Quantity: <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} required /></label>
+                  <label>Quantity: <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} required className="form-input"/></label>
                 </div>
                 <div>
-                  <label>Purchase Price: <input type="number" step="0.01" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} required /></label>
+                  <label>Purchase Price: <input type="number" step="0.01" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} required className="form-input"/></label>
                 </div>
-                <button type="submit">Add Position</button>
-                {positionMessage && <p style={{ color: 'lightblue', fontSize: 'small' }}>{positionMessage}</p>}
+                <button type="submit" className="form-button">Add Position</button>
+                {positionMessage && <p className={`message ${positionMessage.includes('Failed') ? 'error' : 'success'}`}>{positionMessage}</p>}
               </form>
             </div>
 
-            {/* Portfolio Display */}
             <div className="portfolio-container">
               <h3>Your Portfolio</h3>
               {isLoadingPortfolio && <p>Loading portfolio data...</p>}
-              {portfolioError && <p style={{ color: 'red' }}>{portfolioError}</p>}
+              {portfolioError && <p className="message error">{portfolioError}</p>}
               {!isLoadingPortfolio && !portfolioError && (
                 <>
-                  <div className="portfolio-summary">
+                  <div className="portfolio-summary" >
                      <p>Total Value: ${portfolio.total_value?.toFixed(2)}</p>
                      <p>Total PnL: <span style={{ color: portfolio.total_pnl >= 0 ? 'lightgreen' : '#FFCCCB' }}>${portfolio.total_pnl?.toFixed(2)} ({portfolio.total_pnl_percent?.toFixed(2)}%)</span></p>
-                  </div>
+                   </div>
 
                   {portfolio.positions_pnl.length > 0 ? (
                     <>
@@ -249,18 +250,17 @@ function App() {
                       </tbody>
                     </table>
 
-                    {/* Charts */}
                     <div className="charts-container">
                        {portfolio.positions_pnl.some(p => typeof p.current_value === 'number') && (
                          <div className="chart">
                            <h4>Allocation by Value</h4>
-                           <Pie data={allocationChartData} />
+                           <Pie data={allocationChartData} options={allocationChartOptions} />
                          </div>
                        )}
                        {portfolio.positions_pnl.some(p => typeof p.pnl === 'number') && (
                          <div className="chart">
                            <h4>PnL per Position</h4>
-                            <Bar data={pnlChartData} options={{ plugins: { legend: { display: false } } }} />
+                            <Bar data={pnlChartData} options={allocationChartOptions} />
                          </div>
                        )}
                     </div>

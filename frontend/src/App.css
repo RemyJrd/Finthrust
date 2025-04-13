@@ -1,89 +1,61 @@
+/* Basic styles */
 .App {
   text-align: center;
+  font-family: 'Poppins', sans-serif;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
+/* App header */
 
 .App-header {
-  background-color: #282c34;
+  background-color: #121212;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* justify-content: center; */ /* Remove center align to allow scroll */
-  font-size: calc(10px + 2vmin);
-  color: white;
-  padding-top: 20px;
+  justify-content: center;
+  padding: 20px; /* Add some padding */
+  text-align: center;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Basic Form Styling */
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Increase gap for better spacing */
-  align-items: center; /* Center form elements */
+/* Form Styling */
+.form-container {
+  /* Styles généraux pour le conteneur du formulaire */
   margin-bottom: 20px;
-  padding: 20px;
-  background-color: #3a3f4a; /* Slightly lighter background for form */
-  border-radius: 8px;
 }
 
-form label {
-  display: block; /* Ensure labels are on their own line */
+.form-container label {
+  display: block;
   margin-bottom: 5px;
-  font-size: medium;
-  text-align: left; /* Align text to the left */
-  width: 100%; /* Make label take full width */
+  color: #E0E0E0; /* Couleur du texte des labels */
 }
 
-form input[type="text"],
-form input[type="number"] {
-  padding: 10px;
-  font-size: medium;
-  border-radius: 4px;
+.form-container input[type="text"],
+.form-container input[type="number"] {
+  /* Styles pour les champs de saisie texte et nombre */
+  padding: 8px;
   border: 1px solid #ccc;
-  margin-left: 10px; /* Add margin between label text and input */
-  width: 150px; /* Fixed width for inputs */
-}
-
-form button {
-  padding: 10px 20px;
-  font-size: medium;
-  background-color: #61dafb;
-  color: #282c34;
-  border: none;
   border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-form button:hover {
-  background-color: #21a1f1;
+  width: 200px; /* Largeur fixe pour les champs */
+  background-color: #333; /* Fond légèrement plus clair que le fond principal */
+  color: #E0E0E0;
 }
 
 /* Container for Add Position Form */
+
+.portfolio-summary {
+  margin-top: 20px;
+  text-align: left; /* Align text to the left */
+}
+
+.portfolio-summary p {
+  font-size: 1.2em;
+  margin: 5px 0;
+}
+
+.portfolio-summary span {
+  font-weight: bold; /* Make the PnL value bold */
+}
+
 .form-container {
   width: 80%;
   max-width: 500px;
@@ -100,39 +72,26 @@ form button:hover {
   border-radius: 8px;
 }
 
-.portfolio-summary {
-  margin-bottom: 20px;
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 15px;
-  font-size: large; /* Make summary text larger */
-}
-
-.portfolio-summary p {
-  margin: 5px 0;
-}
-
 /* Table Styling */
+
 .positions-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
-  font-size: small;
 }
 
 .positions-table th,
 .positions-table td {
-  border: 1px solid #555;
-  padding: 8px 12px; /* Increase padding */
-  text-align: right;
-}
-
-.positions-table th {
-  background-color: #4a4f5a;
-  text-align: center;
-}
-
-.positions-table td:first-child { /* Left align ticker */
+  padding: 8px;
+  border: 1px solid #333; /* Bordures plus claires que le fond principal */
   text-align: left;
+}
+.positions-table th {
+  background-color: #333;
+  color: #E0E0E0;
+}
+.positions-table tbody tr:nth-child(even) {
+  background-color: #222; /* Alternance des couleurs de fond pour les lignes */
 }
 
 /* Charts Container */
@@ -160,3 +119,38 @@ form button:hover {
   margin-bottom: 15px;
   color: #282c34;
 }
+
+.form-container button {
+  /* Styles pour les boutons */
+  padding: 10px 15px;
+  background-color: #A7C7E7; /* Couleur pastel principale pour le fond du bouton */
+  color: #121212; /* Couleur du texte du bouton (sombre pour contraste) */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+
+.form-container button:hover {
+  background-color: #B0E2E2; /* Couleur légèrement plus claire au survol */
+}
+
+/* Message Styles */
+.message {
+  margin-top: 10px;
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+.message.success {
+  color: #B5EAD7; /* Pastel green for success */
+}
+
+.message.error {
+  color: #FFB6C1; /* Pastel pink for errors */
+}
+
+.message.info {
+  color: #A7C7E7; /* Pastel blue for info */
+}
+
