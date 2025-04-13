@@ -98,10 +98,7 @@ const theme = createTheme({
       },
     },
   },
-  typography: {
-    fontFamily: 'Roboto, sans-serif',
-  },
-);
+});
 
 function App() {
   const [username, setUsername] = useState('');
