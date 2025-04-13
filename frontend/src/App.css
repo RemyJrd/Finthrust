@@ -154,3 +154,25 @@
   color: #A7C7E7; /* Pastel blue for info */
 }
 
+/* Navigation Menu Styling */
+.nav-links {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  display: flex; /* Display list items horizontally */
+  gap: 20px; /* Add some spacing between list items */
+  background-color: #A7C7E7; /* Light blue background for the menu */
+  border-radius: 8px;
+  padding: 10px 20px; /* Padding for better look */
+  justify-content: center;
+  width: fit-content;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: white; /* White color for the links */
+  padding: 10px 15px; /* Padding around the links */
+  border-radius: 4px; /* Rounded corners */
+  display: block;
+}
+

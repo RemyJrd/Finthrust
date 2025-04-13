@@ -1,29 +1,115 @@
 import React, { useState, useEffect } from 'react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
-import { Pie, Bar } from 'react-chartjs-2';
-import './App.css';
-
-ChartJS.register(
-  ArcElement, 
-  Tooltip, 
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
   Legend,
   CategoryScale,
   LinearScale,
   BarElement,
-  Title 
+  Title,
+} from 'chart.js';
+import { Pie, Bar } from 'react-chartjs-2';
+import './App.css';
+import PortfolioManagement from './PortfolioManagement';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { CssBaseline } from '@mui/material';
+import PortfolioTracking from './PortfolioTracking';
+import Advisor from './Advisor';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+
+ChartJS.register(
+  ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title
+);
+
+const theme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#64B5F6', // A more vibrant blue
+    },
+    secondary: {
+      main: '#E57373', // A more vibrant red
+    },
+    background: {
+      default: '#121212', // Dark background
+      paper: '#1E1E1E', // Slightly lighter for paper elements
+    },
+    text: {
+      primary: '#E0F7FA', // Light text color
+    },
+  },
+  typography: {
+    fontFamily: 'Roboto, sans-serif',
+    h1: {
+      fontWeight: 700,
+      fontSize: '2.5rem',
+      letterSpacing: '-0.05rem',
+    },
+    h2: {
+      fontWeight: 600,
+      fontSize: '2rem',
+      letterSpacing: '-0.03rem',
+    },
+  },
+  shape: {
+    borderRadius: 8, // Slightly rounded corners
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          textTransform: 'none',
+          fontWeight: 500,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.2)', // Subtle shadow
+          transition: 'transform 0.2s ease-in-out',
+          '&:hover': {
+            transform: 'scale(1.05)', // Slight scale effect on hover
+          },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 8,
+            '&:hover fieldset': {
+              borderColor: '#64B5F6', // Highlight on hover
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: '#64B5F6',
+            },
+          },
+        },
+      },
+    },
+    MuiTableContainer: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 4px 8px rgba(0,0,0,0.1)', // Shadow for the table
+          borderRadius: 8,
+        },
+      },
+    },
+  },
+  typography: {
+    fontFamily: 'Roboto, sans-serif',
+  },
 );
 
 function App() {
   const [username, setUsername] = useState('');
   const [loggedIn, setLoggedIn] = useState(false);
   const [loginMessage, setLoginMessage] = useState('');
-
-  const [ticker, setTicker] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [purchasePrice, setPurchasePrice] = useState('');
-  const [positionMessage, setPositionMessage] = useState('');
-
   const [portfolio, setPortfolio] = useState({ positions_pnl: [], total_pnl: 0, total_value: 0, total_pnl_percent: 0 });
+  const [Advisor, setAdvisor] = useState(false);
+
   const [isLoadingPortfolio, setIsLoadingPortfolio] = useState(false);
   const [portfolioError, setPortfolioError] = useState('');
 
@@ -73,40 +159,6 @@ function App() {
     setIsLoadingPortfolio(false);
   };
 
-  const handleAddPosition = async (e) => {
-    e.preventDefault();
-    setPositionMessage('');
-    if (!username) {
-      setPositionMessage('Please login first');
-      return;
-    }
-    try {
-      const positionData = {
-        ticker: ticker.toUpperCase(), // Standardize ticker
-        quantity: parseFloat(quantity),
-        purchase_price: parseFloat(purchasePrice)
-      };
-      const response = await fetch(`${API_BASE_URL}/${username}/positions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(positionData) });
-      const data = await response.json();
-      if (response.ok) {
-        setPositionMessage(data.message);
-        // Clear the form
-        setTicker('');
-        setQuantity('');
-        setPurchasePrice('');
-        // Refresh portfolio data to show the new position and updated PnL
-        fetchPortfolio();
-      } else {
-        setPositionMessage(data.detail || 'Failed to add position');
-      }
-    } catch (error) {
-      console.error('Error adding position:', error);
-      setPositionMessage('Failed to add position due to network error.');
-    }
-  };
 
   const allocationChartData = {
     labels: portfolio.positions_pnl
@@ -165,116 +217,55 @@ function App() {
         borderWidth: 1
       },
     ],
-    options: {
-      
-      },
-    ],
+    options: {}
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1 style={{ color: '#A7C7E7' }}>Portfolio Tracker</h1>
-        {!loggedIn ? (
-          <form onSubmit={handleLogin}>
-            <label>
-              Username:<br />
-              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
-            </label>
-            <button type="submit">Login</button>
-            {loginMessage && <p className={`message ${loginMessage.includes('failed') ? 'error' : 'info'}`}>{loginMessage}</p>}
-          </form>
-        ) : (
-          <div>
-            <h2 style={{ color: '#A7C7E7' }}>Welcome, {username}!</h2>
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <BrowserRouter>
+                <div className="App">
+                    <header className="App-header">
+                        <h1 >Portfolio Tracker</h1>
+                        {!loggedIn ? (
+                            <form onSubmit={handleLogin}>
+                              <label>
+                                Username:<br />
+                                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
+                              </label>
+                              <button type="submit">Login</button>
+                              {loginMessage && (
+                                <p className={`message ${loginMessage.includes('failed') ? 'error' : 'info'}`}>{loginMessage}</p>
+                              )}
+                            </form>
+                        ) : (
+                            <div>
+                                <h2 style={{ color: '#A7C7E7' }}>Welcome, {username}!</h2>
 
-            <div className="form-container">
-              <h3>Add New Position</h3>
-              <form onSubmit={handleAddPosition}>
-                <div>
-                  <label>Ticker: <input type="text" value={ticker} onChange={(e) => setTicker(e.target.value)} required className="form-input"/></label>
+                                <nav>
+                                    <ul className="nav-links">
+                                        <li>
+                                            <Link to="/portfolio">Gestion de patrimoine</Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/tracking">Suivi</Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/advisor">Conseiller</Link>
+                                        </li>
+                                    </ul>
+                                </nav>
+                                <Routes>
+                                    <Route path="/portfolio" element={<PortfolioManagement portfolio={portfolio} username={username} fetchPortfolio={fetchPortfolio} API_BASE_URL={API_BASE_URL} />} />
+                                    <Route path="/tracking" element={<PortfolioTracking username={username} API_BASE_URL={API_BASE_URL} />} />
+                                    <Route path="/advisor" element={<Advisor />} />
+                                </Routes>
+                            </div>
+                        )}
+                    </header>
                 </div>
-                <div>
-                  <label>Quantity: <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} required className="form-input"/></label>
-                </div>
-                <div>
-                  <label>Purchase Price: <input type="number" step="0.01" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} required className="form-input"/></label>
-                </div>
-                <button type="submit" className="form-button">Add Position</button>
-                {positionMessage && <p className={`message ${positionMessage.includes('Failed') ? 'error' : 'success'}`}>{positionMessage}</p>}
-              </form>
-            </div>
-
-            <div className="portfolio-container">
-              <h3>Your Portfolio</h3>
-              {isLoadingPortfolio && <p>Loading portfolio data...</p>}
-              {portfolioError && <p className="message error">{portfolioError}</p>}
-              {!isLoadingPortfolio && !portfolioError && (
-                <>
-                  <div className="portfolio-summary" >
-                     <p>Total Value: ${portfolio.total_value?.toFixed(2)}</p>
-                     <p>Total PnL: <span style={{ color: portfolio.total_pnl >= 0 ? 'lightgreen' : '#FFCCCB' }}>${portfolio.total_pnl?.toFixed(2)} ({portfolio.total_pnl_percent?.toFixed(2)}%)</span></p>
-                   </div>
-
-                  {portfolio.positions_pnl.length > 0 ? (
-                    <>
-                    <table className="positions-table">
-                      <thead>
-                        <tr>
-                          <th>Ticker</th>
-                          <th>Quantity</th>
-                          <th>Purchase Price</th>
-                          <th>Current Price</th>
-                          <th>Current Value</th>
-                          <th>PnL</th>
-                          <th>PnL %</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {portfolio.positions_pnl.map((pos, index) => (
-                          <tr key={index}>
-                            <td>{pos.ticker}</td>
-                            <td>{pos.quantity}</td>
-                            <td>${pos.purchase_price?.toFixed(2)}</td>
-                            <td>{typeof pos.current_price === 'number' ? `$${pos.current_price.toFixed(2)}` : pos.current_price}</td>
-                            <td>{typeof pos.current_value === 'number' ? `$${pos.current_value.toFixed(2)}` : pos.current_value}</td>
-                            <td style={{ color: typeof pos.pnl === 'number' ? (pos.pnl >= 0 ? 'lightgreen' : '#FFCCCB') : 'white' }}>
-                              {typeof pos.pnl === 'number' ? `$${pos.pnl.toFixed(2)}` : pos.pnl}
-                            </td>
-                            <td style={{ color: typeof pos.pnl_percent === 'number' ? (pos.pnl_percent >= 0 ? 'lightgreen' : '#FFCCCB') : 'white' }}>
-                              {typeof pos.pnl_percent === 'number' ? `${pos.pnl_percent.toFixed(2)}%` : pos.pnl_percent}
-                            </td>
-                            {pos.error && <td colSpan="7" style={{color: 'orange', fontSize: 'smaller'}}>{pos.error}</td>}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-
-                    <div className="charts-container">
-                       {portfolio.positions_pnl.some(p => typeof p.current_value === 'number') && (
-                         <div className="chart">
-                           <h4>Allocation by Value</h4>
-                           <Pie data={allocationChartData} options={allocationChartOptions} />
-                         </div>
-                       )}
-                       {portfolio.positions_pnl.some(p => typeof p.pnl === 'number') && (
-                         <div className="chart">
-                           <h4>PnL per Position</h4>
-                            <Bar data={pnlChartData} options={allocationChartOptions} />
-                         </div>
-                       )}
-                    </div>
-                  </>
-                  ) : (
-                    <p>Add positions to see your portfolio details.</p>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </header>
-    </div>
+            </BrowserRouter>
+        </ThemeProvider>
   );
 }
 
