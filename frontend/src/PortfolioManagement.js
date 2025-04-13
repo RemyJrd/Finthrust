@@ -13,22 +13,22 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
-  
 } from '@mui/material';
 
 function PortfolioManagement({ portfolio, username, fetchPortfolio, API_BASE_URL }) {
   const [ticker, setTicker] = useState('');
   const [quantity, setQuantity] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
-  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [purchaseDate, setPurchaseDate] = useState(''); // New state for purchase date
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // 'success', 'error', 'info', 'warning'
 
   const handleAddPosition = async (e) => {
     e.preventDefault();
     if (!username) {
-      setSnackbarMessage('Please login first');  setSnackbarSeverity('warning');
+      setSnackbarMessage('Please login first');
+      setSnackbarSeverity('warning');
       setOpenSnackbar(true);
       return;
     }
@@ -36,10 +36,10 @@ function PortfolioManagement({ portfolio, username, fetchPortfolio, API_BASE_URL
       const positionData = {
         ticker: ticker.toUpperCase(),
         quantity: parseFloat(quantity),
-        purchase_date: purchaseDate, // Include purchase date
         purchase_price: parseFloat(purchasePrice),
+        purchase_date: purchaseDate, // Include purchase date
       };
-      const response = await fetch(`${API_BASE_URL}/${username}/positions`, {
+      const response = await fetch(`${API_BASE_URL}/users/${username}/positions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(positionData),
@@ -99,7 +99,7 @@ function PortfolioManagement({ portfolio, username, fetchPortfolio, API_BASE_URL
                 <TableCell>Ticker</TableCell>
                 <TableCell align="right">Quantity</TableCell>
                 <TableCell align="right">Purchase Price</TableCell>
-                {/* ... (autres colonnes) ... */}
+                {/* Add more columns if needed, e.g., Purchase Date */}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -110,7 +110,7 @@ function PortfolioManagement({ portfolio, username, fetchPortfolio, API_BASE_URL
                   </TableCell>
                   <TableCell align="right">{pos.quantity}</TableCell>
                   <TableCell align="right">${pos.purchase_price?.toFixed(2)}</TableCell>
-                  {/* ... (autres données) ... */}
+                  {/* Add more cells if needed, e.g., pos.purchase_date */}
                 </TableRow>
               ))}
             </TableBody>
@@ -128,13 +128,12 @@ function PortfolioManagement({ portfolio, username, fetchPortfolio, API_BASE_URL
               <TextField
                 label="Ticker"
                 value={ticker}
-                
                 onChange={(e) => setTicker(e.target.value)}
                 required
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={3}> {/* Adjusted sm size */}
               <TextField
                 label="Quantity"
                 type="number"
@@ -144,7 +143,18 @@ function PortfolioManagement({ portfolio, username, fetchPortfolio, API_BASE_URL
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={3}> {/* Adjusted sm size */}
+              <TextField
+                label="Purchase Price"
+                type="number"
+                step="0.01"
+                value={purchasePrice}
+                onChange={(e) => setPurchasePrice(e.target.value)}
+                required
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={3}> {/* Adjusted sm size */}
               <TextField
                 label="Purchase Date"
                 type="date"
@@ -156,17 +166,7 @@ function PortfolioManagement({ portfolio, username, fetchPortfolio, API_BASE_URL
                   shrink: true,
                 }}
               />
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Purchase Price"
-                type="number"
-                step="0.01"
-                value={purchasePrice}
-                onChange={(e) => setPurchasePrice(e.target.value)}
-                required
-                fullWidth
-              />
-            </Grid>
+            </Grid> {/* Corrected closing tag placement */}
             <Grid item xs={12}>
               <Button type="submit" variant="contained" color="primary">
                 Add Position
@@ -183,6 +183,6 @@ function PortfolioManagement({ portfolio, username, fetchPortfolio, API_BASE_URL
       </Snackbar>
     </div>
   );
-  }
+}
 
 export default PortfolioManagement;

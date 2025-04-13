@@ -89,7 +89,6 @@ function PortfolioTracking({ username, API_BASE_URL }) {
 
   return (
     <Paper elevation={3} style={{ padding: '20px', borderRadius: '8px' }}>
-      <Line data={data} options={options} />
             {loading ? (
         <CircularProgress />
       ) : error ? (
