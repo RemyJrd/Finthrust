@@ -1,11 +1,13 @@
 /* Basic styles */
 .App {
   text-align: center;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Roboto', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* App header */
-
+/* App header - now using Material UI AppBar */
 .App-header {
   background-color: #121212;
   min-height: 100vh;
@@ -13,38 +15,67 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px; /* Add some padding */
+  padding: 20px;
   text-align: center;
+}
+
+/* Navigation */
+.nav-links {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  justify-content: center;
+}
+
+.nav-links li {
+  margin: 0 15px;
+}
+
+.nav-links a {
+  color: #A7C7E7;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: #FFB6C1;
 }
 
 /* Form Styling */
 .form-container {
-  /* Styles généraux pour le conteneur du formulaire */
   margin-bottom: 20px;
+  background-color: #1E1E1E;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .form-container label {
   display: block;
   margin-bottom: 5px;
-  color: #E0E0E0; /* Couleur du texte des labels */
+  color: #E0E0E0;
 }
 
 .form-container input[type="text"],
 .form-container input[type="number"] {
-  /* Styles pour les champs de saisie texte et nombre */
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #333;
   border-radius: 4px;
-  width: 200px; /* Largeur fixe pour les champs */
-  background-color: #333; /* Fond légèrement plus clair que le fond principal */
+  width: 200px;
+  background-color: #333;
   color: #E0E0E0;
 }
 
 /* Container for Add Position Form */
-
 .portfolio-summary {
   margin-top: 20px;
-  text-align: left; /* Align text to the left */
+  text-align: left;
+  background-color: #1E1E1E;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
 }
 
 .portfolio-summary p {
@@ -53,13 +84,7 @@
 }
 
 .portfolio-summary span {
-  font-weight: bold; /* Make the PnL value bold */
-}
-
-.form-container {
-  width: 80%;
-  max-width: 500px;
-  margin: 20px auto;
+  font-weight: bold;
 }
 
 /* Portfolio Container */
@@ -68,12 +93,12 @@
   max-width: 1000px;
   margin: 30px auto;
   padding: 20px;
-  background-color: #3a3f4a;
-  border-radius: 8px;
+  background-color: #1E1E1E;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Table Styling */
-
 .positions-table {
   width: 100%;
   border-collapse: collapse;
@@ -82,97 +107,102 @@
 
 .positions-table th,
 .positions-table td {
-  padding: 8px;
-  border: 1px solid #333; /* Bordures plus claires que le fond principal */
+  padding: 12px;
+  border: 1px solid #333;
   text-align: left;
 }
+
 .positions-table th {
   background-color: #333;
   color: #E0E0E0;
+  font-weight: 500;
 }
+
 .positions-table tbody tr:nth-child(even) {
-  background-color: #222; /* Alternance des couleurs de fond pour les lignes */
+  background-color: #222;
+}
+
+.positions-table tbody tr:hover {
+  background-color: #2a2a2a;
 }
 
 /* Charts Container */
 .charts-container {
   display: flex;
-  justify-content: space-around; /* Space out charts */
-  flex-wrap: wrap; /* Allow charts to wrap on smaller screens */
+  flex-wrap: wrap;
+  justify-content: space-between;
   margin-top: 30px;
-  gap: 20px; /* Add gap between charts */
+  gap: 20px;
 }
 
-.chart {
-  width: 45%; /* Each chart takes roughly half the width */
-  min-width: 300px; /* Minimum width for smaller screens */
-  max-width: 500px;
-  background-color: #fff; /* White background for chart */
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  color: #333; /* Darker text color for chart labels/titles */
+.chart-wrapper {
+  flex: 1;
+  min-width: 300px;
+  background-color: #1E1E1E;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.chart h4 {
-  text-align: center;
-  margin-bottom: 15px;
-  color: #282c34;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .charts-container {
+    flex-direction: column;
+  }
+  
+  .chart-wrapper {
+    width: 100%;
+  }
+  
+  .nav-links {
+    flex-direction: column;
+  }
+  
+  .nav-links li {
+    margin: 10px 0;
+  }
 }
 
-.form-container button {
-  /* Styles pour les boutons */
-  padding: 10px 15px;
-  background-color: #A7C7E7; /* Couleur pastel principale pour le fond du bouton */
-  color: #121212; /* Couleur du texte du bouton (sombre pour contraste) */
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-
-.form-container button:hover {
-  background-color: #B0E2E2; /* Couleur légèrement plus claire au survol */
-}
-
-/* Message Styles */
+/* Message styling */
 .message {
   margin-top: 10px;
-  font-size: 0.9em;
-  font-style: italic;
-}
-
-.message.success {
-  color: #B5EAD7; /* Pastel green for success */
+  padding: 10px;
+  border-radius: 4px;
 }
 
 .message.error {
-  color: #FFB6C1; /* Pastel pink for errors */
+  background-color: rgba(255, 0, 0, 0.1);
+  color: #FFB6C1;
 }
 
 .message.info {
-  color: #A7C7E7; /* Pastel blue for info */
+  background-color: rgba(0, 255, 0, 0.1);
+  color: #B5EAD7;
 }
 
-/* Navigation Menu Styling */
-.nav-links {
-  list-style: none;
-  padding: 0;
-  margin: 20px 0;
-  display: flex; /* Display list items horizontally */
-  gap: 20px; /* Add some spacing between list items */
-  background-color: #A7C7E7; /* Light blue background for the menu */
-  border-radius: 8px;
-  padding: 10px 20px; /* Padding for better look */
+/* Welcome screen */
+.welcome-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  width: fit-content;
+  min-height: 70vh;
+  text-align: center;
 }
 
-.nav-links a {
-  text-decoration: none;
-  color: white; /* White color for the links */
-  padding: 10px 15px; /* Padding around the links */
-  border-radius: 4px; /* Rounded corners */
-  display: block;
+/* Button styling */
+.MuiButton-root {
+  text-transform: none !important;
+  font-weight: 500 !important;
+}
+
+/* Card styling */
+.MuiPaper-root {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.MuiPaper-root:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
 }
 
