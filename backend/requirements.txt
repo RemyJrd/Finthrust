@@ -2,3 +2,6 @@ fastapi
 uvicorn[standard]
 requests
 python-dotenv
+yfinance
+pandas
+sqlmodel

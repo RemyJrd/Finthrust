@@ -59,6 +59,8 @@ Create a `.env` file in the backend directory with:
 ```
 ALPHA_VANTAGE_API_KEY=your_api_key_here  # Optional
 ```
+5. The backend uses an SQLite database stored in `finthrust.db` in the backend
+   directory. The file is created automatically on first run.
 
 ### Frontend Setup
 
@@ -72,6 +74,11 @@ cd Finthrust/frontend
 npm install
 # or
 yarn install
+```
+
+3. Run frontend tests:
+```bash
+npm test
 ```
 
 ## Running the Application

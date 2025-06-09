@@ -10,6 +10,7 @@ import random # Import random for dummy data
 import yfinance as yf  # Add yfinance import
 import pandas as pd  # Add pandas import for DataFrame operations
 import json
+from sqlmodel import SQLModel, Field, Session, create_engine, select
 
 # Load environment variables from .env file
 load_dotenv()
@@ -38,6 +39,26 @@ if not ALPHA_VANTAGE_API_KEY:
     # You might want to raise an exception here or handle it differently
     # raise ValueError("ALPHA_VANTAGE_API_KEY environment variable not set.")
 
+# Database setup
+DATABASE_URL = "sqlite:///./finthrust.db"
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
+class User(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    username: str = Field(index=True, unique=True)
+
+class DBPosition(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    ticker: str
+    quantity: float
+    purchase_price: float
+    purchase_date: str
+
+@app.on_event("startup")
+def on_startup() -> None:
+    SQLModel.metadata.create_all(engine)
+
 class LoginRequest(BaseModel):
     username: str
 
@@ -53,12 +74,7 @@ class StockSearchResult(BaseModel):
     exchange: str
     type: str = "Equity"
 
-# Simple in-memory storage - Replace with a database in a real app
-user_data = {
-    "testuser": { # Example user
-        "positions": []
-    }
-}
+# Remove old in-memory storage (now using SQLite database)
 
 # --- Helper Function to Get Current Price ---
 # Rate limiting mechanism
@@ -305,16 +321,22 @@ def get_price(ticker: str, date_str: str = None):
 @app.post("/login")
 async def login(login_request: LoginRequest):
     username = login_request.username
-    if username not in user_data:
-        # Create a new user if they don't exist
-        user_data[username] = {"positions": []}
-        return {"message": f"Welcome, new user {username}!"}
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.username == username)).first()
+        if not user:
+            user = User(username=username)
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+            return {"message": f"Welcome, new user {username}!"}
     return {"message": f"Welcome back, {username}!"}
 
 @app.post("/users/{username}/positions")
 async def add_position(username: str, position: Position):
-    if username not in user_data:
-        raise HTTPException(status_code=404, detail="User not found")
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.username == username)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
 
     # If purchase_price is not provided, fetch the historical price
     if position.purchase_price is None:
@@ -328,31 +350,43 @@ async def add_position(username: str, position: Position):
         
         position.purchase_price = historical_price
 
-    # Store position data including purchase_date
-    user_data[username]["positions"].append(position.dict())
+    new_pos = DBPosition(
+        user_id=user.id,
+        ticker=position.ticker,
+        quantity=position.quantity,
+        purchase_price=position.purchase_price,
+        purchase_date=position.purchase_date,
+    )
+    session.add(new_pos)
+    session.commit()
     return {"message": f"Position {position.ticker} added successfully for {username}"}
 
 @app.get("/users/{username}/portfolio")
 async def get_portfolio(username: str):
-    if username not in user_data:
-        raise HTTPException(status_code=404, detail="User not found")
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.username == username)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
 
-    positions = user_data[username]["positions"]
+        positions = session.exec(select(DBPosition).where(DBPosition.user_id == user.id)).all()
     positions_pnl = []
     total_portfolio_value = 0
     total_purchase_cost = 0
 
     for pos in positions:
         # Use the new get_price function that tries multiple sources
-        current_price = get_price(pos['ticker'])
+        current_price = get_price(pos.ticker)
         if current_price is not None:
-            current_value = pos['quantity'] * current_price
-            purchase_cost = pos['quantity'] * pos['purchase_price']
+            current_value = pos.quantity * current_price
+            purchase_cost = pos.quantity * pos.purchase_price
             pnl = current_value - purchase_cost
             pnl_percent = (pnl / purchase_cost) * 100 if purchase_cost != 0 else 0
 
             positions_pnl.append({
-                **pos,
+                "ticker": pos.ticker,
+                "quantity": pos.quantity,
+                "purchase_price": pos.purchase_price,
+                "purchase_date": pos.purchase_date,
                 "current_price": current_price,
                 "current_value": round(current_value, 2),
                 "pnl": round(pnl, 2),
@@ -363,12 +397,15 @@ async def get_portfolio(username: str):
         else:
             # Append position even if price fetch fails, include error message
             positions_pnl.append({
-                **pos,
+                "ticker": pos.ticker,
+                "quantity": pos.quantity,
+                "purchase_price": pos.purchase_price,
+                "purchase_date": pos.purchase_date,
                 "current_price": "N/A",
                 "current_value": "N/A",
                 "pnl": "N/A",
                 "pnl_percent": "N/A",
-                "error": f"Could not fetch price for {pos['ticker']}"
+                "error": f"Could not fetch price for {pos.ticker}"
             })
             # Note: We might want to decide how to handle total value if a price fails
             # For now, we just skip adding its value
@@ -386,8 +423,10 @@ async def get_portfolio(username: str):
 # New endpoint for portfolio history
 @app.get("/users/{username}/portfolio/history")
 async def get_portfolio_history(username: str):
-    if username not in user_data:
-        raise HTTPException(status_code=404, detail="User not found")
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.username == username)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
 
     # --- Dummy Data Generation ---
     # In a real application, fetch historical data and calculate portfolio value over time
