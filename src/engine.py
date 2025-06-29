@@ -1,21 +1,25 @@
 import pandas as pd
 
-def run_backtest(data: pd.DataFrame, strategy, **strategy_params):
+def run_backtest(data, strategy_instance, initial_capital=100000):
     """
-    Exécute le backtest d'une stratégie.
-    Pour l'instant, une simulation très simple sans latence, slippage, etc.
+    Exécute le backtest d'une stratégie sur un ensemble de données.
     """
-    # 1. Générer les signaux à partir de la stratégie
-    strat_instance = strategy(**strategy_params)
-    signals = strat_instance.generate_signals(data)
+    # La stratégie est déjà une instance, pas besoin de la créer.
+
+    # Générer les signaux
+    signals = strategy_instance.generate_signals(data)
 
     # 2. Simuler le portefeuille
-    initial_capital = 100000.0
     positions = pd.DataFrame(index=signals.index).fillna(0.0)
     portfolio = pd.DataFrame(index=data.index).fillna(0.0)
 
-    # Joindre les signaux aux données de marché
-    portfolio = data.join(signals, how='left').fillna(0)
+    # Joindre les signaux aux données de marché de manière robuste
+    # On utilise pd.merge sur la colonne 'Date' après avoir réinitialisé l'index
+    # pour éviter les erreurs liées à des index incompatibles.
+    left = data.reset_index()
+    right = signals.reset_index()
+    portfolio = pd.merge(left, right, on='Date', how='left')
+    portfolio = portfolio.set_index('Date').fillna(0)
     
     # Logique de trading simple : 1 unité par trade
     positions['position'] = portfolio['signal'].cumsum()
@@ -26,8 +30,13 @@ def run_backtest(data: pd.DataFrame, strategy, **strategy_params):
     portfolio['returns'] = portfolio['total'].pct_change()
 
     # Isoler les trades exécutés pour la visualisation
-    trades = signals[signals['signal'] != 0].copy()
-    trades['price'] = data.loc[trades.index]['Close']
-    trades['type'] = trades['signal'].apply(lambda x: 'BUY' if x > 0 else 'SELL')
+    trades = pd.DataFrame(columns=['Type', 'Price'])
+    diff_positions = positions['position'].diff()
+    
+    for i in range(len(diff_positions)):
+        if diff_positions.iloc[i] > 0: # Achat
+            trades.loc[diff_positions.index[i]] = ['Buy', data['Close'].iloc[i]]
+        elif diff_positions.iloc[i] < 0: # Vente
+            trades.loc[diff_positions.index[i]] = ['Sell', data['Close'].iloc[i]]
 
     return portfolio, trades
