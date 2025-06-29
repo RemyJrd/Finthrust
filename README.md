@@ -1,121 +1,41 @@
-# Finthrust - Portfolio Management Application
+# Finthrust - Terminal de Backtesting de Stratégies
 
-Finthrust is a modern web application for managing and tracking your stock portfolio. It provides real-time stock data, historical price tracking, and portfolio performance visualization.
+Ce projet est une application web pour visualiser et backtester des stratégies de trading sur des actifs financiers.
 
-## Features
+## 🎯 Objectif
 
-- 🔍 Real-time stock search with company information
-- 📈 Live stock price tracking
-- 📊 Portfolio performance visualization
-- 📅 Historical price data support
-- 📱 Responsive modern UI
-- 📈 Interactive charts and analytics
-- 🔄 Automatic price updates
-- 🌍 Support for multiple stock exchanges
+Visualiser le comportement de stratégies de trading avancées sur des actifs volatils, en intégrant des indicateurs personnalisés et un modèle de remplissage réaliste des ordres (slippage, spread, latence, etc.).
 
-## Tech Stack
+## 🚀 Installation et Lancement
 
-### Backend
-- FastAPI (Python)
-- yfinance for stock data
-- pandas for data processing
-- Alpha Vantage API (alternative data source)
+1.  **Clonez le projet :**
+    ```bash
+    git clone <votre-repo>
+    cd Finthrust
+    ```
 
-### Frontend
-- React.js
-- Material-UI
-- Recharts for data visualization
-- Axios for API communication
+2.  **Créez un environnement virtuel et installez les dépendances :**
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # Sur Windows: venv\Scripts\activate
+    pip install -r requirements.txt
+    ```
 
-## Prerequisites
+3.  **Lancez l'application Streamlit :**
+    ```bash
+    streamlit run app.py
+    ```
 
-- Python 3.8+
-- Node.js 18+
-- npm or yarn
-- (Optional) Alpha Vantage API key for additional data source
+L'application devrait s'ouvrir dans votre navigateur à l'adresse `http://localhost:8501`.
 
-## Installation
+## 📂 Structure du Projet
 
-### Backend Setup
-
-1. Navigate to the backend directory:
-```bash
-cd Finthrust/backend
-```
-
-2. Create and activate a virtual environment (optional but recommended):
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. Set up environment variables:
-Create a `.env` file in the backend directory with:
-```
-ALPHA_VANTAGE_API_KEY=your_api_key_here  # Optional
-```
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-```bash
-cd Finthrust/frontend
-```
-
-2. Install dependencies:
-```bash
-npm install
-# or
-yarn install
-```
-
-## Running the Application
-
-### Start the Backend Server
-
-```bash
-cd backend
-uvicorn main:app --reload
-```
-The backend will be available at `http://localhost:8000`
-
-### Start the Frontend Development Server
-
-```bash
-cd frontend
-npm start
-# or
-yarn start
-```
-The frontend will be available at `http://localhost:3000`
-
-## Usage
-
-1. Open your browser and navigate to `http://localhost:3000`
-2. Enter your username to access your portfolio
-3. Use the search function to find stocks
-4. Add positions to your portfolio with:
-   - Stock symbol
-   - Quantity
-   - Purchase price (optional)
-   - Purchase date
-5. View your portfolio performance and analytics
-
-## API Documentation
-
-Once the backend is running, you can access the API documentation at:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-This project is licensed under the Apache-2.0 license - see the LICENSE file for details.
+-   `app.py`: Interface utilisateur (Streamlit).
+-   `requirements.txt`: Dépendances Python.
+-   `src/`: Logique du backend.
+    -   `data_loader.py`: Chargement des données.
+    -   `engine.py`: Moteur de backtesting.
+    -   `performance.py`: Calcul des métriques.
+    -   `visualization.py`: Création des graphiques.
+    -   `strategies/`: Contient les stratégies de trading.
+-   `data/`: Données d'exemple.
